@@ -4,7 +4,7 @@ A concurrent LRU cache with strong consistency.
 
 The cache does not changes under read operations. The order of the read items is stored within a lock-free structure provided by `concurrent-queue`.
 
-Whenever there's a write operation, the cache is locked and the order of the items is updated.
+Whenever there's a write operation, the cache updates the ordering of its items.
 
 Therefore, the cache can be wrapped by a `RwLock` to provide concurrent read operations.
 
