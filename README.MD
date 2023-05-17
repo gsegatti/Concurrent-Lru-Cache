@@ -2,7 +2,7 @@
 
 A concurrent LRU cache with strong consistency.
 
-The cache does not change under read operations. The order of the read items is stored within a lock-free structure provided by `concurrent-queue`.
+The cache leverages `linked_hash_map::LinkedHashMap` does not change under read operations. The order of the read items is stored within a lock-free structure provided by `concurrent_queue::ConcurrentQueue`.
 
 Whenever there's a write operation, the cache updates the ordering of its items.
 
