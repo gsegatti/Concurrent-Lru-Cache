@@ -10,7 +10,7 @@ Therefore, the cache can be wrapped by an `RwLock` to provide concurrent read op
 
 ## Development and Contributing
 > **Warning**
-> This is still under development
+> This is still under development, so breaking changes may occur while doing so.
 
 I intend to further develop and review this crate, but if you want to contribute, feel free to open an issue or a pull request.
 
