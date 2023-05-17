@@ -1,0 +1,11 @@
+[package]
+
+name = "concurrent-lru"
+version = "0.1.0"
+edition = "2021"
+description = "A concurrent LRU cache"
+license = "MIT"
+
+[dependencies]
+linked-hash-map = "0.5.6"
+concurrent-queue = "2.2.0"
