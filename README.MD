@@ -9,6 +9,8 @@ Whenever there's a write operation, the cache updates the ordering of its items.
 Therefore, the cache can be wrapped by a `RwLock` to provide concurrent read operations.
 
 ## Development and Contributing
+> **Warning**
+> This is still under development
 
 I intend to further develop and review this crate, but if you want to contribute, feel free to open an issue or a pull request.
 
