@@ -96,3 +96,96 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> Cache<K, V> {
         self.map.iter_mut()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::assert_eq;
+
+    #[test]
+    fn test_put() {
+        let mut cache = super::Cache::new(2);
+        cache.put(1, 1);
+        cache.put(2, 2);
+        assert_eq!(cache.len(), 2);
+    }
+
+    #[test]
+    fn test_put_and_get() {
+        let mut cache = super::Cache::new(2);
+        cache.put(1, 1);
+        cache.put(2, 2);
+        assert_eq!(cache.get(&1), Some(&1));
+        assert_eq!(cache.get(&2), Some(&2));
+    }
+
+    #[test]
+    fn test_put_update() {
+        let mut cache = super::Cache::new(2);
+        cache.put(1, 1);
+        cache.put(1, 3);
+        assert_eq!(cache.get(&1), Some(&3));
+        assert_eq!(cache.len(), 1);
+    }
+
+    #[test]
+    fn test_put_over_capacity() {
+        let mut cache = super::Cache::new(2);
+        cache.put(1, 1);
+        cache.put(2, 2);
+        cache.put(3, 3);
+        assert_eq!(cache.len(), 2);
+        assert_eq!(cache.get(&1), None);
+        assert_eq!(cache.get(&2), Some(&2));
+        assert_eq!(cache.get(&3), Some(&3));
+    }
+
+    #[test]
+    fn test_put_does_not_evict_oldest() {
+        let mut cache = super::Cache::new(2);
+        cache.put(1, 1);
+        cache.put(2, 2);
+        // This should make the entry 2 the oldest.
+        cache.get(&1);
+        cache.put(3, 3);
+        assert_eq!(cache.len(), 2);
+        // Assert the entry 1 was evicted instead.
+        assert_eq!(cache.get(&1), None);
+        assert_eq!(cache.get(&2), Some(&2));
+        assert_eq!(cache.get(&3), Some(&3));
+    }
+
+    #[test]
+    fn test_put_refresh_evicts_oldest() {
+        let mut cache = super::Cache::new(2);
+        cache.put(1, 1);
+        cache.put(2, 2);
+        cache.get(&1);
+        cache.put_refresh(3, 3);
+        assert_eq!(cache.len(), 2);
+        assert_eq!(cache.get(&1), Some(&1));
+        assert_eq!(cache.get(&2), None);
+        assert_eq!(cache.get(&3), Some(&3));
+    }
+
+    #[test]
+    fn test_contains() {
+        let mut cache = super::Cache::new(2);
+        cache.put(1, 10);
+        assert_eq!(cache.contains(&1), true);
+        assert_eq!(cache.contains(&2), false);
+    }
+
+    #[test]
+    fn test_clear() {
+        let mut cache = super::Cache::new(2);
+        cache.put(1, 10);
+        cache.put(2, 20);
+        cache.get(&1);
+        cache.clear();
+        assert!(cache.is_empty());
+        assert!(cache.queue.is_empty());
+        assert_eq!(cache.len(), 0);
+        assert_eq!(cache.contains(&1), false);
+        assert_eq!(cache.contains(&2), false);
+    }
+}
