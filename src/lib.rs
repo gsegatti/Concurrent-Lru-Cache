@@ -1,5 +1,5 @@
 use concurrent_queue::ConcurrentQueue;
-use linked_hash_map::LinkedHashMap;
+use linked_hash_map::{LinkedHashMap};
 use std::{borrow::Borrow, collections::hash_map::RandomState, hash::Hash};
 
 pub struct Cache<K: Eq + Hash + Send + Sync, V: Send + Sync> {
@@ -8,7 +8,7 @@ pub struct Cache<K: Eq + Hash + Send + Sync, V: Send + Sync> {
     max_size: usize,
 }
 
-impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> Cache<K, V> {
+impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync + Clone> Cache<K, V> {
     pub fn new(max_size: usize) -> Self {
         Cache {
             map: LinkedHashMap::with_capacity(max_size),
@@ -32,12 +32,19 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> Cache<K, V> {
     /// 
     /// This inserts the key-value pair into the cache, without refreshing the ordering of elements.
     /// 
-    fn put(&mut self, k: K, v: V) -> Option<V> {
-        let old_val = self.map.insert(k, v);
-        if self.len() > self.capacity() {
-            self.remove_lru();
+    fn put(&mut self, k: K, v: V,) -> Option<V> {
+        if let Some(value) = self.map.get_mut(&k) {
+            let prev = value.clone();
+            *value = v;
+            return Some(prev);
+        } else {
+            self.map.insert(k, v);
+            if self.len() > self.capacity() {
+                self.remove_lru();
+            }
         }
-        old_val
+
+        None
     }
 
     /// Puts a value in the cache. 
@@ -180,6 +187,21 @@ mod tests {
         assert_eq!(cache.get(&1), Some(&1));
         assert_eq!(cache.get(&2), None);
         assert_eq!(cache.get(&3), Some(&3));
+    }
+
+    #[test]
+    fn test_put_refresh_adds_queue_operations() {
+        let mut cache = super::Cache::new(2);
+        cache.put_refresh(1, 1);
+        // This should add the key to the operation queue.
+        cache.get(&1);
+        // This should add further operations to the queue.
+        cache.put_refresh(1, 2);
+        cache.put_refresh(1, 3);
+        // Assert indeed all operations were added.
+        assert_eq!(cache.queue.len(), 3);
+        // Assert the value was updated.
+        assert_eq!(cache.get(&1).unwrap(), &3);
     }
 
     #[test]
