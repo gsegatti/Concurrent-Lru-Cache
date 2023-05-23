@@ -28,8 +28,11 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> Cache<K, V> {
         None
     }
 
+    /// Puts a value in the cache.
+    /// 
+    /// This inserts the key-value pair into the cache, without refreshing the ordering of elements.
+    /// 
     fn put(&mut self, k: K, v: V) -> Option<V> {
-        self.add_op(&k);
         let old_val = self.map.insert(k, v);
         if self.len() > self.capacity() {
             self.remove_lru();
@@ -37,8 +40,18 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> Cache<K, V> {
         old_val
     }
 
+    /// Puts a value in the cache. 
+    /// 
+    /// If the key already exists, the value is updated and its key added to the operation queue.
+    /// Otherwise, refreshes the ordering of elements and inserts the new key-value pair.
+    /// 
     pub fn put_refresh(&mut self, k: K, v: V) -> Option<V> {
-        self.refresh();
+        if self.contains(&k) {
+            self.add_op(&k);
+        }
+        else {
+            self.refresh();
+        }
         self.put(k, v)
     }
 
@@ -159,9 +172,11 @@ mod tests {
         let mut cache = super::Cache::new(2);
         cache.put(1, 1);
         cache.put(2, 2);
+        // This should make the entry 2 the oldest.
         cache.get(&1);
         cache.put_refresh(3, 3);
         assert_eq!(cache.len(), 2);
+        // Assert the entry 2 was evicted instead.
         assert_eq!(cache.get(&1), Some(&1));
         assert_eq!(cache.get(&2), None);
         assert_eq!(cache.get(&3), Some(&3));
