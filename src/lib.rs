@@ -1,6 +1,6 @@
 use concurrent_queue::ConcurrentQueue;
-use linked_hash_map::{LinkedHashMap};
-use std::{borrow::Borrow, collections::hash_map::RandomState, hash::Hash};
+use linked_hash_map::LinkedHashMap;
+use std::{collections::hash_map::RandomState, hash::Hash};
 
 pub struct Cache<K: Eq + Hash + Send + Sync, V: Send + Sync> {
     map: LinkedHashMap<K, V, RandomState>,
@@ -8,7 +8,7 @@ pub struct Cache<K: Eq + Hash + Send + Sync, V: Send + Sync> {
     max_size: usize,
 }
 
-impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync + Clone> Cache<K, V> {
+impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> Cache<K, V> {
     pub fn new(max_size: usize) -> Self {
         Cache {
             map: LinkedHashMap::with_capacity(max_size),
@@ -16,11 +16,8 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync + Clone> Cache<K, V> {
             max_size,
         }
     }
-    pub fn get<Q>(&self, k: &Q) -> Option<&V>
-    where
-        K: Borrow<Q> + From<Q>,
-        Q: Hash + Eq + Clone,
-    {
+    pub fn get(&self, k: &K) -> Option<&V>
+where {
         self.add_op(k);
         if let Some(v) = self.map.get(k) {
             return Some(v);
@@ -29,14 +26,12 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync + Clone> Cache<K, V> {
     }
 
     /// Puts a value in the cache.
-    /// 
+    ///
     /// This inserts the key-value pair into the cache, without refreshing the ordering of elements.
-    /// 
-    fn put(&mut self, k: K, v: V,) -> Option<V> {
+    ///
+    fn put(&mut self, k: K, v: V) -> Option<V> {
         if let Some(value) = self.map.get_mut(&k) {
-            let prev = value.clone();
-            *value = v;
-            return Some(prev);
+            return Some(std::mem::replace(value, v));
         } else {
             self.map.insert(k, v);
             if self.len() > self.capacity() {
@@ -47,16 +42,15 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync + Clone> Cache<K, V> {
         None
     }
 
-    /// Puts a value in the cache. 
-    /// 
+    /// Puts a value in the cache.
+    ///
     /// If the key already exists, the value is updated and its key added to the operation queue.
     /// Otherwise, refreshes the ordering of elements and inserts the new key-value pair.
-    /// 
+    ///
     pub fn put_refresh(&mut self, k: K, v: V) -> Option<V> {
         if self.contains(&k) {
             self.add_op(&k);
-        }
-        else {
+        } else {
             self.refresh();
         }
         self.put(k, v)
@@ -76,11 +70,7 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync + Clone> Cache<K, V> {
         self.map.pop_front()
     }
 
-    pub fn add_op<Q>(&self, op: &Q)
-    where
-        K: Borrow<Q> + From<Q>,
-        Q: Hash + Eq + Clone,
-    {
+    pub fn add_op(&self, op: &K) {
         self.queue.push(op.clone().into()).ok();
     }
 
