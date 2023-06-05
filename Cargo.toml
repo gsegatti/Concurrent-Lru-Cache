@@ -1,6 +1,6 @@
 [package]
 
-name = "concurrent-lru"
+name = "concurrent-lru-cache"
 version = "0.1.0"
 edition = "2021"
 description = "A concurrent LRU cache"
