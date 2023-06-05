@@ -39,8 +39,8 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> ConcurrentLruCache<K, V
     /// assert_eq!(cache.get(&2), None);
     /// ```
     pub fn get(&self, k: &K) -> Option<&V> {
-        self.add_op(k);
         if let Some(v) = self.map.get(k) {
+            self.add_op(k);
             return Some(v);
         }
         None
