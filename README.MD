@@ -1,4 +1,4 @@
-# Concurrent-Lru
+# Concurrent LRU Cache
 
 A concurrent LRU cache with strong consistency.
 
