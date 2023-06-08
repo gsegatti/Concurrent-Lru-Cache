@@ -3,13 +3,13 @@ use linked_hash_map::LinkedHashMap;
 use std::{collections::hash_map::RandomState, hash::Hash};
 
 /// An LRU cache with concurrent reads.
-pub struct ConcurrentLruCache<K: Eq + Hash + Send + Sync, V: Send + Sync> {
+pub struct ConcurrentLruCache<'a, K: Eq + Hash + Send + Sync, V: Send + Sync> {
     map: LinkedHashMap<K, V, RandomState>,
-    queue: ConcurrentQueue<K>,
+    queue: ConcurrentQueue<&'a K>,
     max_size: usize,
 }
 
-impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> ConcurrentLruCache<K, V> {
+impl<'a, K: Eq + Hash + Send + Sync, V: Send + Sync> ConcurrentLruCache<'a, K, V> {
     /// Create an empty cache with a maximum size.
     ///
     /// # Examples
@@ -39,9 +39,9 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> ConcurrentLruCache<K, V
     /// assert_eq!(cache.get(&2), None);
     /// ```
     pub fn get(&self, k: &K) -> Option<&V> {
-        if let Some(v) = self.map.get(k) {
-            self.add_op(k);
-            return Some(v);
+        if let Some((key,val)) = self.map.get_key_value(k) {
+            self.add_op(key);
+            return Some(val);
         }
         None
     }
@@ -49,7 +49,7 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> ConcurrentLruCache<K, V
     /// Puts the key-value pair into the cache, without refreshing the ordering of elements.
     ///
     /// If the key already exists, the value is updated and the old value is returned.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -67,13 +67,9 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> ConcurrentLruCache<K, V
         old_val
     }
 
-        None
-    }
-
-    /// Puts the key-value pair into the cache.
+    /// Puts the key-value pair into the cache while refreshing the ordering of elements.
     ///
-    /// If the key already exists, the value is updated and its key added to the operation queue.
-    /// Otherwise, refreshes the ordering of elements and inserts the new key-value pair.
+    /// If the key already exists, the value is updated and the old value is returned.
     ///
     /// # Examples
     /// ```
@@ -91,11 +87,7 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> ConcurrentLruCache<K, V
     /// assert_eq!(cache.remove_lru(), None);
     /// ```
     pub fn put_refresh(&mut self, k: K, v: V) -> Option<V> {
-        if self.contains(&k) {
-            self.add_op(&k);
-        } else {
-            self.refresh();
-        }
+        self.refresh();
         self.put(k, v)
     }
 
@@ -117,7 +109,7 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> ConcurrentLruCache<K, V
     /// ```
     pub fn refresh(&mut self) {
         while let Some(key) = self.pop_op() {
-            self.map.get_refresh(&key);
+            self.map.get_refresh(key);
         }
     }
 
@@ -161,13 +153,13 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> ConcurrentLruCache<K, V
 
     /// Adds an operation to the queue.
     ///
-    fn add_op(&self, op: &K) {
-        self.queue.push(op.clone()).ok();
+    fn add_op(&self, op: &'a K) {
+        self.queue.push(op).ok();
     }
 
     /// Returns an operation from the queue, if any.
     ///
-    fn pop_op(&self) -> Option<K> {
+    fn pop_op(&self) -> Option<&'a K> {
         if self.queue.is_empty() {
             return None;
         }
@@ -338,21 +330,6 @@ mod tests {
         assert_eq!(cache.get(&1), Some(&1));
         assert_eq!(cache.get(&2), None);
         assert_eq!(cache.get(&3), Some(&3));
-    }
-
-    #[test]
-    fn test_put_refresh_adds_queue_operations() {
-        let mut cache = super::ConcurrentLruCache::new(2);
-        cache.put_refresh(1, 1);
-        // This should add the key to the operation queue.
-        cache.get(&1);
-        // This should add further operations to the queue.
-        cache.put_refresh(1, 2);
-        cache.put_refresh(1, 3);
-        // Assert indeed all operations were added.
-        assert_eq!(cache.queue.len(), 3);
-        // Assert the value was updated.
-        assert_eq!(cache.get(&1).unwrap(), &3);
     }
 
     #[test]

@@ -398,7 +398,7 @@ impl<K: Hash + Eq, V, S: BuildHasher> LinkedHashMap<K, V, S> {
     /// assert_eq!(map.get_key_value(&1), Some((&1, &"a")));
     /// assert_eq!(map.get_key_value(&2), Some((&2, &"b")));
     /// ```
-    pub fn get_key_value<Q: ?Sized>(&self, k: &Q) -> Option<(&K, &V)>
+    pub fn get_key_value<'a, Q: ?Sized>(&self, k: &Q) -> Option<(&'a K, &V)>
     where
         K: Borrow<Q>,
         Q: Eq + Hash,
