@@ -48,6 +48,8 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> ConcurrentLruCache<K, V
 
     /// Puts the key-value pair into the cache, without refreshing the ordering of elements.
     ///
+    /// If the key already exists, the value is updated and the old value is returned.
+    /// 
     /// # Examples
     ///
     /// ```
@@ -58,14 +60,12 @@ impl<K: Eq + Hash + Send + Clone + Sync, V: Send + Sync> ConcurrentLruCache<K, V
     /// assert_eq!(cache.get(&1), Some(&"a"));
     /// ```
     pub fn put(&mut self, k: K, v: V) -> Option<V> {
-        if let Some(value) = self.map.get_mut(&k) {
-            return Some(std::mem::replace(value, v));
-        } else {
-            self.map.insert(k, v);
-            if self.len() > self.capacity() {
-                self.remove_lru();
-            }
+        let old_val = self.map.insert(k, v);
+        if self.len() > self.capacity() {
+            self.remove_lru();
         }
+        old_val
+    }
 
         None
     }
