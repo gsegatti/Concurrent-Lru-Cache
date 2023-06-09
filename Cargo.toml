@@ -9,3 +9,6 @@ license = "MIT"
 [dependencies]
 linked-hash-map = "0.5.6"
 concurrent-queue = "2.2.0"
+
+[patch.crates-io]
+linked-hash-map = { path = "linked-hash-map-0.5.6/" }
