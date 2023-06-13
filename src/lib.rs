@@ -46,7 +46,7 @@ impl<'a, K: Eq + Hash + Send + Sync, V: Send + Sync> ConcurrentLruCache<'a, K, V
         None
     }
 
-    /// Puts the key-value pair into the cache, without refreshing the ordering of elements.
+    /// Puts the key-value pair into the cache.
     ///
     /// If the key already exists, the value is updated and the old value is returned.
     ///
@@ -56,15 +56,14 @@ impl<'a, K: Eq + Hash + Send + Sync, V: Send + Sync> ConcurrentLruCache<'a, K, V
     /// use concurrent_lru_cache::ConcurrentLruCache;
     /// let mut cache: ConcurrentLruCache<i32, &str> = ConcurrentLruCache::new(1);
     ///
-    /// cache.put(1, "a");
+    /// cache.put_refresh(1, "a");
     /// assert_eq!(cache.get(&1), Some(&"a"));
     /// ```
-    pub fn put(&mut self, k: K, v: V) -> Option<V> {
-        let old_val = self.map.insert(k, v);
-        if self.len() > self.capacity() {
-            self.remove_lru();
+    fn put(&mut self, k: K, v: V) -> Option<V> {
+        if self.len() == self.capacity() {
+            self.map.pop_front();
         }
-        old_val
+        self.map.insert(k, v)
     }
 
     /// Puts the key-value pair into the cache while refreshing the ordering of elements.
