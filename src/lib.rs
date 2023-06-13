@@ -209,6 +209,19 @@ impl<'a, K: Eq + Hash + Send + Sync, V: Send + Sync> ConcurrentLruCache<'a, K, V
         self.map.is_empty()
     }
 
+    /// Returns `true` if the operation queue is empty, `false` otherwise.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use concurrent_lru_cache::ConcurrentLruCache;
+    /// let cache: ConcurrentLruCache<i32, &str> = ConcurrentLruCache::new(2);
+    /// assert_eq!(cache.op_queue_empty(), true);
+    /// ```
+    pub fn op_queue_empty(&self) -> bool {
+        self.queue.is_empty()
+    }
+
     /// Clears the cache, removing all key-value pairs and clearing the operation queue.
     ///
     /// # Examples
