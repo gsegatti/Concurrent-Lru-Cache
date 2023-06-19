@@ -39,7 +39,7 @@ impl<'a, K: Eq + Hash + Send + Sync, V: Send + Sync> ConcurrentLruCache<'a, K, V
     /// assert_eq!(cache.get(&2), None);
     /// ```
     pub fn get(&self, k: &K) -> Option<&V> {
-        if let Some((key,val)) = self.map.get_key_value(k) {
+        if let Some((key, val)) = self.map.get_key_value(k) {
             self.add_op(key);
             return Some(val);
         }
@@ -210,15 +210,15 @@ impl<'a, K: Eq + Hash + Send + Sync, V: Send + Sync> ConcurrentLruCache<'a, K, V
     }
 
     /// Returns `true` if the operation queue is empty, `false` otherwise.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use concurrent_lru_cache::ConcurrentLruCache;
     /// let cache: ConcurrentLruCache<i32, &str> = ConcurrentLruCache::new(2);
     /// assert_eq!(cache.op_queue_empty(), true);
     /// ```
-    pub fn op_queue_empty(&self) -> bool {
+    pub fn is_op_queue_empty(&self) -> bool {
         self.queue.is_empty()
     }
 
