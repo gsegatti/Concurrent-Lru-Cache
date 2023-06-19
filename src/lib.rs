@@ -46,6 +46,30 @@ impl<'a, K: Eq + Hash + Send + Sync, V: Send + Sync> ConcurrentLruCache<'a, K, V
         None
     }
 
+    /// Returns a reference to the value corresponding to the key while refreshing the LRU ordering of elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use concurrent_lru_cache::ConcurrentLruCache;
+    /// let mut cache: ConcurrentLruCache<i32, &str> = ConcurrentLruCache::new(3);
+    ///
+    /// cache.put_refresh(1, "a");
+    /// cache.put_refresh(2, "b");
+    /// cache.get(&1);
+    /// assert_eq!(cache.op_queue_len(), 1);
+    ///
+    /// assert_eq!(cache.get_refresh(&2), Some(&"b"));
+    /// assert_eq!(cache.op_queue_len(), 0);
+    /// ```
+    pub fn get_refresh(&mut self, k: &K) -> Option<&V> {
+        self.refresh();
+        match self.map.get_refresh(k) {
+            Some(val) => Some(val),
+            None => None,
+        }
+    }
+
     /// Puts the key-value pair into the cache.
     ///
     /// If the key already exists, the value is updated and the old value is returned.
@@ -236,7 +260,7 @@ impl<'a, K: Eq + Hash + Send + Sync, V: Send + Sync> ConcurrentLruCache<'a, K, V
     /// ```
     /// use concurrent_lru_cache::ConcurrentLruCache;
     /// let cache: ConcurrentLruCache<i32, &str> = ConcurrentLruCache::new(2);
-    /// assert_eq!(cache.op_queue_empty(), true);
+    /// assert_eq!(cache.is_op_queue_empty(), true);
     /// ```
     pub fn is_op_queue_empty(&self) -> bool {
         self.queue.is_empty()
