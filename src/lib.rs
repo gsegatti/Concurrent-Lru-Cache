@@ -183,6 +183,26 @@ impl<'a, K: Eq + Hash + Send + Sync, V: Send + Sync> ConcurrentLruCache<'a, K, V
         self.map.len()
     }
 
+    /// Returns the number of operations in the queue.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use concurrent_lru_cache::ConcurrentLruCache;
+    /// let mut cache: ConcurrentLruCache<i32, &str> = ConcurrentLruCache::new(2);
+    ///
+    /// cache.put_refresh(1, "a");
+    /// cache.put_refresh(2, "b");
+    /// cache.get(&1);
+    /// assert_eq!(cache.op_queue_len(), 1);
+    ///
+    /// cache.get(&2);
+    /// assert_eq!(cache.op_queue_len(), 2);
+    /// ```
+    pub fn op_queue_len(&self) -> usize {
+        self.queue.len()
+    }
+
     /// Returns the maximum number of elements the cache can hold.
     ///
     /// # Examples
