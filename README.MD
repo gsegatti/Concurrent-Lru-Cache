@@ -1,20 +1,21 @@
 # Concurrent LRU Cache
 
-A concurrent LRU cache with lock-free reads.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-The cache leverages `linked_hash_map::LinkedHashMap` and does not change under read operations. The order of the read items is stored within a lock-free structure provided by `concurrent_queue::ConcurrentQueue`.
+The Concurrent LRU Cache is a simple and efficient thread-safe implementation designed on top of `linked_hash_map::LinkedHashMap` and `concurrent_queue::ConcurrentQueue`. It offers efficient caching capabilities while maintaining the Least Recently Used (LRU) property.
 
-Whenever there's a write operation, the cache updates the LRU ordering of its items.
+## Features
 
-Therefore, the cache supports concurrent read requests from multiple threads.
+- **Concurrent and Thread-Safe:** This cache allows multiple threads to access it simultaneously without the risk of data corruption or race conditions.
 
-## Development and Contributing
-> **Warning**
-> This is still under development, so breaking changes may occur while doing so.
+- **LRU Replacement Policy:** The cache efficiently maintains the LRU order of items, ensuring that the most recently used items are retained while evicting the least recently used ones.
 
-I intend to further develop and review this crate, but if you want to contribute, feel free to open an issue or a pull request.
+- **Lightweight and Simple:** Built with simplicity in mind, this cache provides an easy-to-use interface for managing your data with minimal overhead.
 
-## License
+## Installation
 
-Licensed under:
- * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+To use the Concurrent LRU Cache in your Rust project, add the following line to your `Cargo.toml` file:
+
+```toml
+[dependencies]
+concurrent-lru-cache = "0.1.0"
