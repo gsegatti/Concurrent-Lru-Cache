@@ -8,9 +8,9 @@ The Concurrent LRU Cache is a simple and efficient thread-safe implementation de
 
 - **Concurrent and Thread-Safe:** This cache allows multiple threads to access it simultaneously without the risk of data corruption or race conditions.
 
-- **LRU Replacement Policy:** The cache efficiently maintains the LRU order of items, ensuring that the most recently used items are retained while evicting the least recently used ones.
+- **LRU Replacement Policy:** The cache maintains the LRU order of items, ensuring that the most recently used items are retained while evicting the least recently used ones.
 
-- **Lightweight and Simple:** Built with simplicity in mind, this cache provides an easy-to-use interface for managing your data with minimal overhead.
+- **Simple:** Built with simplicity in mind, this cache provides an easy-to-use interface for managing your data with minimal overhead on top of well established crates.
 
 ## Installation
 
