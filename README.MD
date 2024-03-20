@@ -6,6 +6,6 @@ The Concurrent LRU Cache is a simple and thread-safe implementation designed on 
 
 # Future Implementation
 
-The idea here is to have something that can keep an approximated LRU ordering (which can indeed be updated to *actual* LRU order). Sometimes, we don't care about evicting the one least recently used node, but rather one of the least recently used. Specially when all older values have diminishing value quite quickly. I think this is the only scenario where this cache would be more efficient then a mutex wrapping a non-thread safe lru cache.
+The idea here is to have something that can keep an approximated LRU ordering (which can indeed be updated to *actual* LRU order). Sometimes, we don't care about evicting the one least recently used node, but rather one of the least recently used. Specially when all older values have diminishing worth quickly. I think this is the scenario where this cache would be more efficient then a mutex wrapping a non-thread safe lru cache.
 
-That being said, the little benchmark I did conduct here, whilst maintaining LRU order strictly, had shown very similar results to a mutex wrapped LRU cache. Hence why I believe if we can relax the LRU constraints this cache may be able to surpass it performance-wise. That would, however, yield a somewhat hard decision making process of knowing *when* to update our cache LRU ordering.
+That being said, the little benchmark I did conduct here, whilst maintaining LRU order strictly, had shown very similar results to a mutex wrapped LRU cache. Hence why I believe if we can relax the LRU constraints this cache may be able to surpass it performance-wise. That would, however, yield a perhaps hard decision making process of knowing *when* to update our cache LRU ordering.
